@@ -1,2 +1,3 @@
 # ResumeScreener
-A task given for the intern role at Captial Placement
+A resume matcher which takes CV as input matches the CV with job description provided using pretrained model like BERT or DistilBERT.
+
