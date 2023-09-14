@@ -1,9 +1,9 @@
+import os
+import csv
 from PyPDF2 import PdfReader
 import spacy
 import re
 import yake
-
-
 
 # Load spaCy NER model
 nlp = spacy.load("en_core_web_sm")
@@ -25,11 +25,6 @@ def preprocess_text(text):
     text = re.sub(r'[^\w\s]', ' ', text)
     return text 
 
-# def extract_skills_ner(text):
-#     doc = nlp(text)
-#     skills = [ent.text for ent in doc.ents if ent.label_ == 'SKILL']
-#     return skills
-
 def extract_skills_keywords(text):
     # Create a YAKE keyword extractor
     keyword_extractor = yake.KeywordExtractor()
@@ -50,7 +45,6 @@ def extract_skills_from_resume(resume_text):
     extracted_skills = extract_skills_keywords(preprocessed_text)
 
     return extracted_skills
-
 
 def extract_education(text):
     education_info = []
@@ -85,25 +79,75 @@ def format_education_info(education_info):
         })
     return formatted_info
 
+def extract_category_from_folder(folder_path):
+    return os.path.basename(folder_path)
+
+def extract_top_skills_from_folder(folder_path, top_n):
+    top_skills_per_cv = []
+    for root, _, files in os.walk(folder_path):
+        for file in files:
+            if file.endswith(".pdf"):
+                cv_path = os.path.join(root, file)
+                resume_text = extract_text_from_pdf(cv_path)
+                cleaned_text = preprocess_text(resume_text)
+                top_skills = extract_skills_from_resume(cleaned_text)
+                top_skills_per_cv.append(top_skills[:top_n])
+    return top_skills_per_cv
+
+def extract_education_and_category(folder_path):
+    education_and_category_info = []
+    category_name = extract_category_from_folder(folder_path)
+    for root, _, files in os.walk(folder_path):
+        for file in files:
+            if file.endswith(".pdf"):
+                cv_path = os.path.join(root, file)
+                resume_text = extract_text_from_pdf(cv_path)
+                cleaned_text = preprocess_text(resume_text)
+                education_info = extract_education(cleaned_text)
+                education_and_category_info.append({
+                    "CV File": cv_path,
+                    "Category": category_name,
+                    "Education": education_info,
+                })
+    return education_and_category_info
+
+def save_cv_data_to_csv(category_folder, output_csv_folder, top_n=10):
+    top_skills_per_cv = extract_top_skills_from_folder(category_folder, top_n)
+    education_and_category_info = extract_education_and_category(category_folder)
+    category_name = extract_category_from_folder(category_folder)
+    output_csv_path = os.path.join(output_csv_folder, f"{category_name}.csv")
+
+    with open(output_csv_path, 'w', newline='', encoding='utf-8') as csv_file:
+        fieldnames = ["CV File", "Category", "Education", "Top Skills"]
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        writer.writeheader()
+
+        for item in education_and_category_info:
+            cv_path = item["CV File"]
+            category = item["Category"]
+            education = item["Education"]
+            top_skills = top_skills_per_cv.pop(0)
+            writer.writerow({
+                "CV File": cv_path,
+                "Category": category,
+                "Education": education,
+                "Top Skills": ', '.join(top_skills),
+            })
+
 def main():
-    FILE_PATH = "./data/ENGINEERING/10219099.pdf"
-    resume_text = extract_text_from_pdf(FILE_PATH)
-    cleaned_text = preprocess_text(resume_text)
-    # ner_skills = extract_skills_ner(cleaned_text)
-    keyword_skills = extract_skills_keywords(cleaned_text)
-    extracted_skills = extract_skills_from_resume(cleaned_text)
-    education_info = extract_education(cleaned_text)
-    formatted_education_info = format_education_info(education_info)
+    DATA_FOLDER = "./data"  # Replace with your folder path
+    OUTPUT_CSV_FOLDER = "./output_csv"
+    top_n = 10
 
-    # print("Skills Extracted using NER:", ner_skills)
-    print("Skills Extracted:", keyword_skills)
-    # print("Skills Extracted using YAKE:", extracted_skills)
-    print("Education Found: ", education_info)
-    for edu in formatted_education_info:
-        print("Degree:", edu["Degree"])
-        print("Major:", edu["Major"])
-        print("University:", edu["University"])
+    if not os.path.exists(OUTPUT_CSV_FOLDER):
+        os.makedirs(OUTPUT_CSV_FOLDER)
 
+    for root, dirs, _ in os.walk(DATA_FOLDER):
+        for category in dirs:
+            category_folder = os.path.join(DATA_FOLDER, category)
+            save_cv_data_to_csv(category_folder, OUTPUT_CSV_FOLDER, top_n)
+
+    print(f"CSV files saved to {OUTPUT_CSV_FOLDER}")
 
 if __name__ == '__main__':
     main()
