@@ -26,5 +26,3 @@ The main objective of this project is to create a robust system that streamlines
 ## Outcome
 The outcome of this project is an efficient resume matching system that can significantly reduce the time and effort required for screening candidates. It provides organizations with a shortlist of the most relevant candidates for each job description, improving the overall hiring process.
 
-## Note
-This project encourages innovation and flexibility in tool selection. While we suggest specific tools and models, you are welcome to explore alternatives that you believe may enhance the project's performance. Please document any deviations from the recommendations and provide a rationale for your choices.
