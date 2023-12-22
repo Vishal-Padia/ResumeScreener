@@ -98,7 +98,7 @@ tzdata==2023.3
 urllib3>=1.26.17
 wasabi==1.1.2
 websocket-client==1.6.1
-Werkzeug==2.3.6
+Werkzeug==3.0.1
 xxhash==3.3.0
 yake==0.4.8
 yarl==1.9.2
