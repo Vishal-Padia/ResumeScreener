@@ -27,7 +27,7 @@ fsspec==2023.6.0
 gensim==4.3.2
 google-auth==2.22.0
 google-auth-oauthlib==1.0.0
-grpcio==1.56.0
+grpcio==1.56.2
 huggingface-hub==0.17.1
 idna==3.4
 jellyfish==1.0.0
